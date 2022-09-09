@@ -22,7 +22,11 @@
   :fun ref _on_connected
     @log.info -> ("Connected")
     //@_is_tcp_connected = True
-    @io.write_stream << b"\x10\x15\x00\x04MQTT\x04\x02\x00<\x00\x09savi-mqtt"
+    connect_msg = --MQTT.Protocol.Encoder.connect("savi-mqtt")
+    inspected = Bytes.from_array(connect_msg.clone.as_array)
+    @log.info -> ("CONNECT -> Writing: \(inspected.format.literal)")
+    @io.write_stream << --connect_msg
+
 
   :fun ref _on_writable
     @log.debug -> ("Writable")

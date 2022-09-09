@@ -1,0 +1,31 @@
+:module MQTT.Protocol.Encoder
+  :fun connect(client_id String, mqtt_version U8 = U8[4]) Bytes'iso
+    // Variable Header
+    protocol_name  = b"\x00\x04MQTT" // 2-bytes length + name
+    protocol_level = b"\x04"
+    connect_flags  = b"\x02" // clean session
+    keep_alive     = b"\x00\x3c"
+
+    len USize = protocol_name.size + protocol_level.size + connect_flags.size + keep_alive.size
+
+    // Payload
+    // 2-bytes length + client_id
+    len = len + 2 + client_id.size
+
+    // depending on the control header size
+    control_byte = 0x10
+
+    msg = Bytes.new_iso(len + 4)
+    msg.push(control_byte)
+    msg.push(len.u8) // XXX: Variable encode length
+
+    msg.push_bytes(protocol_name)
+    msg.push_bytes(protocol_level)
+    msg.push_bytes(connect_flags)
+    msg.push_bytes(keep_alive)
+    msg.push_native_u16(client_id.size.u16.native_to_network)
+    msg.push_bytes(client_id.as_bytes)
+
+    --msg
+
+
