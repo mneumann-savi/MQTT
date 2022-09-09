@@ -1,0 +1,48 @@
+:manifest lib MQTT
+  :sources "src/*.savi"
+
+  :dependency ByteStream v0
+    :from "github:savi-lang/ByteStream"
+
+  :dependency TCP v0
+    :from "github:savi-lang/TCP"
+    :depends on ByteStream
+    :depends on IO
+    :depends on OSError
+    :depends on IPAddress
+
+  :dependency IO v0
+    :from "github:savi-lang/IO"
+    :depends on ByteStream
+    :depends on OSError
+
+  :dependency OSError v0
+    :from "github:savi-lang/OSError"
+
+  :transitive dependency IPAddress v0
+    :from "github:savi-lang/IPAddress"
+
+:manifest bin "example"
+  :copies MQTT
+  :sources "example/*.savi"
+
+:manifest bin "spec"
+  :copies MQTT
+  :sources "spec/*.savi"
+
+  :dependency Spec v0
+    :from "github:savi-lang/Spec"
+    :depends on Map
+    :depends on Time
+    :depends on Timer
+
+  :transitive dependency Map v0
+    :from "github:savi-lang/Map"
+
+  :transitive dependency Time v0
+    :from "github:savi-lang/Time"
+
+  :transitive dependency Timer v0
+    :from "github:savi-lang/Timer"
+    :depends on Time
+
