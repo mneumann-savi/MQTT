@@ -33,6 +33,13 @@
   :copies MQTT
   :sources "example/*.savi"
 
+  :dependency Timer v0
+    :from "github:savi-lang/Timer"
+    :depends on Time
+
+  :dependency Time v0
+    :from "github:savi-lang/Time"
+
 :manifest bin "spec"
   :copies MQTT
   :sources "spec/*.savi"
