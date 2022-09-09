@@ -1,0 +1,70 @@
+:alias MQTT.Logger: Logger(Logger.Formatter.StringWithLevel)
+
+:actor MQTT.Connection
+  :is IO.Actor(IO.Action)
+
+  :let log MQTT.Logger
+  :let io TCP.Engine
+
+  // :var _is_tcp_connected Bool
+
+  :new (ticket TCP.Connect.Ticket, @log)
+    @io = TCP.Engine.new(@, --ticket)
+    //@_is_tcp_connected = False
+
+    case @io.connect_error == (
+    | OSError.None |
+    // ok
+    |
+      @log.warn -> ("Failed to connect: \(@io.connect_error.name)")
+    )
+
+  :fun ref _on_connected
+    @log.info -> ("Connected")
+    //@_is_tcp_connected = True
+    @io.write_stream << b"\x10\x15\x00\x04MQTT\x04\x02\x00<\x00\x09savi-mqtt"
+
+  :fun ref _on_writable
+    @log.debug -> ("Writable")
+    try (@io.write_stream.flush!)
+
+  :fun ref _on_readable
+    @log.debug -> ("Bytes available")
+    @io.pending_reads -> (bytes_available |
+      @log.trace -> ("\(bytes_available.format.decimal) bytes available")
+      // XXX: This is a hack
+      data  = Bytes.from_array(@io.read_stream.extract_all.as_array)
+      @log.debug -> ("\(data.format.literal) [\(data.format.hex_dump)]")
+    )
+
+  :fun ref _on_connection_closed
+    @log.debug -> ("Connection closed")
+  // try @io.listen.as!(TCP.Listener).dispose
+  // @_is_tcp_connected = False
+
+  :fun ref _on_connection_failed
+    @log.debug -> ("Failed to connect: \(@io.connect_error.name)") 
+  // @_is_tcp_connected = False
+
+  :fun ref io_react(action IO.Action)
+    case action == (
+    | IO.Action.Opened |
+      @_on_connected
+
+    | IO.Action.OpenFailed |
+      @_on_connection_failed
+
+    | IO.Action.Write |
+      @_on_writable
+
+    | IO.Action.Read |
+      @_on_readable
+
+    | IO.Action.Closed |
+      @_on_connection_closed
+    )
+
+    @
+
+  :be dispose: @io.close
+
