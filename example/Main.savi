@@ -7,9 +7,11 @@
     logger = MQTT.Logger.new(env.out, Logger.Level.Trace)
     ticket = TCP.auth(env.root).connect.to("127.0.0.1", "1883")
     @conn = MQTT.Connection.new(--ticket, logger)
-    @timer = Timer.Engine.new(@, Time.Duration.milliseconds(1))
+    @timer = Timer.Engine.new(@, Time.Duration.milliseconds(10))
 
   :fun ref timer_react @
-    @conn.publish("topic", b"foobar")
+    elapsed = @timer.elapsed
+    message = "\(elapsed.total_seconds.format.decimal).\(elapsed.nanosecond.format.decimal)"
+    @conn.publish("topic", (--message).as_bytes)
     @
 
