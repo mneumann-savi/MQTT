@@ -1,0 +1,66 @@
+:trait box MQTT.Protocol.Encode
+  :fun box encode_into!(buf Bytes'iso) Bytes'iso
+  :fun box encode_into_space USize
+  :fun box encode! Bytes'iso
+    @encode_into!(Bytes.new_iso(@encode_into_space))
+
+:struct MQTT.Message.Connect
+  :is MQTT.Protocol.Encode
+  :let client_id String
+  :let mqtt_version U8
+
+  // Variable Header
+  :let protocol_name Bytes: b"\x00\x04MQTT" // 2-bytes length + name
+  :let protocol_level Bytes: b"\x04"
+  :let connect_flags Bytes: b"\x02" // clean session
+  :let keep_alive Bytes: b"\x00\x3c"
+
+  :new (@client_id, @mqtt_version = U8[4])
+
+  :fun box encode_into_space USize
+    @protocol_name.size + @protocol_level.size + @connect_flags.size + @keep_alive.size + 2 + @client_id.size + 4
+
+  :fun box encode_into!(buf Bytes'iso) Bytes'iso
+    len USize = @protocol_name.size + @protocol_level.size + @connect_flags.size + @keep_alive.size
+
+    // Payload
+    // 2-bytes length + client_id
+    len = len + 2 + @client_id.size
+
+    // depending on the control header size
+    control_byte = 0x10
+
+    buf.push(control_byte)
+    buf.push(len.u8) // XXX: Variable encode length
+
+    buf.push_bytes(@protocol_name)
+    buf.push_bytes(@protocol_level)
+    buf.push_bytes(@connect_flags)
+    buf.push_bytes(@keep_alive)
+    buf.push_native_u16(@client_id.size.u16.native_to_network)
+    buf.push_bytes(@client_id.as_bytes)
+    --buf
+
+
+:struct MQTT.Message.Publish
+  :is MQTT.Protocol.Encode
+  :let topic_name String
+  :let payload Bytes
+
+  :new (@topic_name, @payload)
+
+  :fun box encode_into_space USize
+    USize[2] + @topic_name.size + @payload.size + 2
+
+  :fun box encode_into!(buf Bytes'iso) Bytes'iso
+    len USize = USize[2] + @topic_name.size + @payload.size
+
+    control_byte = 0x30
+    buf.push(control_byte)
+    buf.push(len.u8) // TODO: Variable encode length
+
+    buf.push_native_u16(@topic_name.size.u16.native_to_network)
+    buf.push_bytes(@topic_name.as_bytes)
+    buf.push_bytes(@payload)
+    --buf
+

@@ -21,23 +21,29 @@
 
   :be publish(topic_name String, payload Bytes)
     @log.info -> ("PUBLISH on \(topic_name)")
-    publish_msg = --MQTT.Protocol.Encoder.publish(topic_name, payload)
-    inspected = Bytes.from_array(publish_msg.clone.as_array)
-    @log.info -> ("PUBLISH: \(inspected.format.literal)")
-    @io.write_stream << --publish_msg
-    try (@io.write_stream.flush!)
+
+    try (
+      publish_msg = MQTT.Message.Publish.new(topic_name, payload).encode!
+      inspected = Bytes.from_array(publish_msg.clone.as_array)
+      @log.info -> ("PUBLISH: \(inspected.format.literal)")
+      @io.write_stream << --publish_msg
+      try (@io.flush!)
+    )
 
   :fun ref _on_connected
     @log.info -> ("Connected")
     //@_is_tcp_connected = True
-    connect_msg = --MQTT.Protocol.Encoder.connect("savi-mqtt")
-    inspected = Bytes.from_array(connect_msg.clone.as_array)
-    @log.info -> ("CONNECT -> Writing: \(inspected.format.literal)")
-    @io.write_stream << --connect_msg
+
+    try (
+      connect_msg = MQTT.Message.Connect.new("savi-mqtt").encode!
+      inspected = Bytes.from_array(connect_msg.clone.as_array)
+      @log.info -> ("CONNECT -> Writing: \(inspected.format.literal)")
+      @io.write_stream << --connect_msg
+    )
 
   :fun ref _on_writable
     @log.debug -> ("Writable")
-    try (@io.write_stream.flush!)
+    try (@io.flush!)
 
   :fun ref _on_readable
     @log.debug -> ("Bytes available")

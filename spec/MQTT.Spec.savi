@@ -2,5 +2,8 @@
   :is Spec
   :const describes: "MQTT"
 
-  :it "has a placeholder method for demonstrating testing"
-    assert: MQTT.placeholder == True
+  :it "encodes Connect message"
+    assert no_error: (
+      data = MQTT.Message.Connect.new("client-id").encode!
+      assert: --data == b"bbbb"
+    )
