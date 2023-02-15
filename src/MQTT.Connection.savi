@@ -47,12 +47,9 @@
 
   :fun ref _on_readable
     @log.debug -> ("Bytes available")
-    @io.pending_reads -> (bytes_available |
-      @log.trace -> ("\(bytes_available.format.decimal) bytes available")
-      // XXX: This is a hack
-      data  = Bytes.from_array(@io.read_stream.extract_all.as_array)
-      @log.debug -> ("\(data.format.literal) [\(data.format.hex_dump)]")
-    )
+    // XXX: This is a hack
+    data  = Bytes.from_array(@io.read_stream.extract_all.as_array)
+    @log.debug -> ("\(data.format.literal) [\(data.format.hex_dump)]")
 
   :fun ref _on_connection_closed
     @log.debug -> ("Connection closed")
