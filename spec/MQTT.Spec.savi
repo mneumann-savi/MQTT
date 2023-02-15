@@ -5,5 +5,5 @@
   :it "encodes Connect message"
     assert no_error: (
       data = MQTT.Message.Connect.new("client-id").encode!
-      assert: --data == b"bbbb"
+      assert: --data == b"\x10\x15\x00\x04MQTT\x04\x02\x00<\x00\tclient-id"
     )
