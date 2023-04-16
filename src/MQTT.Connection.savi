@@ -10,14 +10,7 @@
 
   :new (ticket TCP.Connect.Ticket, @log)
     @io = TCP.Engine.new(@, --ticket)
-    //@_is_tcp_connected = False
-
-    case @io.connect_error == (
-    | OSError.None |
-    // ok
-    |
-      @log.warn -> ("Failed to connect: \(@io.connect_error.name)")
-    )
+  //@_is_tcp_connected = False
 
   :be publish(topic_name String, payload Bytes)
     @log.info -> ("PUBLISH on \(topic_name)")
@@ -57,7 +50,7 @@
   // @_is_tcp_connected = False
 
   :fun ref _on_connection_failed
-    @log.debug -> ("Failed to connect: \(@io.connect_error.name)") 
+    @log.debug -> ("Failed to connect") 
   // @_is_tcp_connected = False
 
   :fun ref io_react(action IO.Action)
